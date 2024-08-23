@@ -4,12 +4,13 @@
   "module": "index.ts",
   "type": "module",
   "scripts": {
+    "init": "cp .env.example .env",
     "start": "tsx --env-file=.env index.ts",
     "dev": "tsx watch --env-file=.env index.ts"
   },
   "dependencies": {
+    "acebase": "^1.29.5",
     "discord.js": "^14.15.3",
-    "ioredis": "^5.4.1",
     "tsx": "^4.16.0"
   },
   "devDependencies": {
