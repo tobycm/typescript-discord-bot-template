@@ -22,6 +22,10 @@
 
     "rootDir": ".",
 
-    "types": ["./Bot.d.ts"]
+    "types": ["./Bot.d.ts"],
+
+    "paths": {
+      "modules/*": ["./modules/*"]
+    }
   }
 }

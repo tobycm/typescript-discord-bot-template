@@ -1,5 +1,6 @@
 import Bot from "Bot";
 import { Events } from "discord.js";
+import { ChatInputInteractionContext } from "modules/context";
 
 export default (bot: Bot) => {
   bot.on(Events.InteractionCreate, async (interaction) => {
@@ -18,7 +19,7 @@ export default (bot: Bot) => {
     if (!command) return;
 
     try {
-      await command.run(interaction);
+      await command.run(new ChatInputInteractionContext(interaction));
     } catch (error) {
       console.error(error);
       await interaction.reply("An error occurred while executing this command.");

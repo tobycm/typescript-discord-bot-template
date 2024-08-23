@@ -1,9 +1,10 @@
-import { AutocompleteInteraction, ChatInputCommandInteraction, SlashCommandBuilder } from "discord.js";
+import { AutocompleteInteraction, SlashCommandBuilder } from "discord.js";
+import { BaseContext } from "./context";
 
 interface CommandOptions {
   data: SlashCommandBuilder;
 
-  run: (interaction: ChatInputCommandInteraction) => any | Promise<any>;
+  run: (context: BaseContext) => any | Promise<any>;
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }
 
@@ -15,6 +16,6 @@ export default class Command {
   }
 
   data: SlashCommandBuilder;
-  run: (interaction: ChatInputCommandInteraction) => any | Promise<any>;
+  run: (context: BaseContext) => any | Promise<any>;
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }
