@@ -1,5 +1,6 @@
 import Bot from "Bot";
 import Command from "modules/command";
+import help from "./help";
 import note from "./note";
 import ping from "./ping";
 import prefix from "./prefix";
@@ -11,6 +12,7 @@ const commands: Command[] = [
   note.set,
   prefix,
   random,
+  help,
 ];
 
 export default function setupCommands(bot: Bot) {
