@@ -3,6 +3,7 @@ import { Events, inlineCode, userMention } from "discord.js";
 import Constants from "modules/constants";
 import { MessageContext } from "modules/context";
 import { messageToInteractionOptions } from "modules/context/converters";
+import { checkPermissions } from "modules/utils";
 
 // const admins = process.env.ADMINS?.split(",") || [];
 
@@ -50,6 +51,17 @@ export default function messageCreateEvent(bot: Bot) {
     } else {
       const command = message.client.commands.get(commandName);
       if (!command) return;
+
+      console.log(command.data.default_member_permissions);
+
+      if (command.data.default_member_permissions) {
+        const missingPermissions = checkPermissions(message.member, BigInt(command.data.default_member_permissions));
+
+        if (missingPermissions.length) {
+          await message.reply(`You are missing the following permissions: ${inlineCode(missingPermissions.join(", "))}`);
+          return;
+        }
+      }
 
       const ctx = new MessageContext(message);
       messageToInteractionOptions(ctx, args, command.data.options);

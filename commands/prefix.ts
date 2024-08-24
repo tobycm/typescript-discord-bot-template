@@ -1,7 +1,11 @@
-import { inlineCode, SlashCommandBuilder } from "discord.js";
+import { inlineCode, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import Command from "modules/command";
 
-const data = new SlashCommandBuilder().setName("prefix").setDescription("Set a custom prefix for the bot.");
+const data = new SlashCommandBuilder()
+  .setName("prefix")
+  .setDescription("Set a custom prefix for the bot.")
+  .setDMPermission(false)
+  .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
 
 data.addStringOption((option) => option.setName("prefix").setDescription("The new prefix for this server"));
 
