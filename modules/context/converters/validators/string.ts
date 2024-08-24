@@ -1,8 +1,8 @@
-import { SlashCommandStringOption } from "discord.js";
+import { inlineCode, SlashCommandStringOption } from "discord.js";
 
 export default function validateString(arg: string, option: SlashCommandStringOption): string | undefined {
-  if (option.choices && !option.choices.map((c) => c.name).includes(arg))
-    return "Invalid choice. Available choices: " + option.choices.map((c) => c.name).join(", ");
+  if (option.choices && !option.choices.map((c) => c.value).includes(arg))
+    return "Invalid choice. Available choices: " + inlineCode(option.choices.map((c) => c.name).join(", "));
 
   if (option.min_length && arg.length < option.min_length)
     return "The argument is too short. It must be at least " + option.min_length + " characters long.";

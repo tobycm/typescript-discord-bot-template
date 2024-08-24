@@ -23,6 +23,6 @@ export default new Command({
       ctx.bot.cache.set(`users:${ctx.author.id}:notes:${name}`, note);
     }
 
-    ctx.reply({ content: `Here is your note ${inlineCode(name)}: ${codeBlock(note)}`, ephemeral: true });
+    ctx.reply({ content: `Here is your note ${inlineCode(name)}: ${codeBlock(note)}`, ephemeral: true, allowedMentions: { parse: [] } });
   },
 });

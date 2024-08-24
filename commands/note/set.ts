@@ -15,6 +15,6 @@ export default new Command({
     ctx.bot.db.ref("users").child(ctx.author.id).child("notes").child(name).set(note);
     ctx.bot.cache.set(`users:${ctx.author.id}:notes:${name}`, note);
 
-    ctx.reply({ content: `I've remembered your note ${inlineCode(name)}.`, ephemeral: true });
+    ctx.reply({ content: `I've remembered your note ${inlineCode(name)}.`, ephemeral: true, allowedMentions: { parse: [] } });
   },
 });

@@ -52,8 +52,6 @@ export default function messageCreateEvent(bot: Bot) {
       const command = message.client.commands.get(commandName);
       if (!command) return;
 
-      console.log(command.data.default_member_permissions);
-
       if (command.data.default_member_permissions) {
         const missingPermissions = checkPermissions(message.member, BigInt(command.data.default_member_permissions));
 

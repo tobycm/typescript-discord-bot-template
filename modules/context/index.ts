@@ -1,9 +1,19 @@
 import Bot from "Bot";
-import { ChatInputCommandInteraction, Guild, GuildMember, GuildTextBasedChannel, InteractionResponse, Message, User } from "discord.js";
+import {
+  ChatInputCommandInteraction,
+  Guild,
+  GuildMember,
+  GuildTextBasedChannel,
+  InteractionResponse,
+  Message,
+  MessageMentionOptions,
+  User,
+} from "discord.js";
 import CommandOptions from "./options";
 
 interface ReplyOptions {
   content: string;
+  allowedMentions?: MessageMentionOptions;
   ephemeral?: boolean;
 }
 
@@ -16,7 +26,7 @@ export abstract class BaseContext {
 
   original: Message | ChatInputCommandInteraction | InteractionResponse;
 
-  options: CommandOptions; // only support string options for now
+  options: CommandOptions;
 
   abstract send(message: string): Promise<BaseContext>;
 
@@ -38,7 +48,7 @@ export class MessageContext extends BaseContext {
     // remember to convert message arguments to interaction options
   }
 
-  options: CommandOptions = new CommandOptions();
+  options = new CommandOptions();
 
   declare original: Message<true>;
 
@@ -73,7 +83,7 @@ export class ChatInputInteractionContext extends BaseContext {
 
   declare original: ChatInputCommandInteraction;
 
-  options: CommandOptions = new CommandOptions();
+  options = new CommandOptions();
 
   async send(message: string) {
     const response = await this.original.reply(message);
@@ -99,7 +109,7 @@ export class InteractionResponseContext extends BaseContext {
     this.member = response.interaction.member;
   }
 
-  options: CommandOptions = new CommandOptions();
+  options = new CommandOptions();
 
   declare original: InteractionResponse<true>;
 
