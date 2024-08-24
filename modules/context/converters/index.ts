@@ -1,5 +1,6 @@
-import { SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandStringOption, inlineCode } from "discord.js";
+import { SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandStringOption, inlineCode } from "discord.js";
 import { MessageContext } from "..";
+import parseAndValidateBoolean from "./validators/boolean";
 import validateInteger from "./validators/integer";
 import validateString from "./validators/string";
 
@@ -8,11 +9,13 @@ export function messageToInteractionOptions(ctx: MessageContext, args: string[],
     const arg = args.shift();
 
     if (option instanceof SlashCommandStringOption) {
-      if (!arg)
+      if (!arg) {
         if (option.required) {
           ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
           return;
-        } else continue;
+        }
+        continue;
+      }
 
       const result = validateString(arg, option);
       if (result) return ctx.reply(result);
@@ -31,6 +34,22 @@ export function messageToInteractionOptions(ctx: MessageContext, args: string[],
       if (result) return ctx.reply(result);
 
       ctx.options.set(option.name, parseInt(arg));
+    }
+
+    if (option instanceof SlashCommandBooleanOption) {
+      if (!arg) {
+        if (option.required) {
+          ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
+          return;
+        }
+
+        continue;
+      }
+
+      const result = parseAndValidateBoolean(arg);
+      if (typeof result === "string") return ctx.reply(result);
+
+      ctx.options.set(option.name, result);
     }
   }
 }

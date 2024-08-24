@@ -1,21 +1,26 @@
 import { AutocompleteInteraction, SlashCommandBuilder } from "discord.js";
 import { BaseContext } from "./context";
 
-interface CommandOptions {
+interface CommandOptions<GuildOnly extends boolean = false> {
   data: SlashCommandBuilder;
+  guildOnly?: GuildOnly;
 
-  run: (context: BaseContext) => any | Promise<any>;
+  run: (context: BaseContext<GuildOnly>) => any | Promise<any>;
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }
 
-export default class Command {
-  constructor(options: CommandOptions) {
+export default class Command<GuildOnly extends boolean = false> {
+  constructor(options: CommandOptions<GuildOnly>) {
     this.data = options.data;
+    this.guildOnly = (options.guildOnly ?? false) as GuildOnly;
+
     this.run = options.run;
     this.completion = options.completion;
   }
 
   data: SlashCommandBuilder;
-  run: (context: BaseContext) => any | Promise<any>;
+  guildOnly: GuildOnly;
+
+  run: (context: BaseContext<GuildOnly>) => any | Promise<any>;
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }

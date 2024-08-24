@@ -26,6 +26,10 @@
 
     "paths": {
       "modules/*": ["./modules/*"]
-    }
+    },
+
+    "strict": true,
+
+    "strictNullChecks": true
   }
 }

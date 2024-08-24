@@ -1,7 +1,7 @@
 import { ApplicationCommandOptionBase, ApplicationCommandOptionType, GuildMember, PermissionFlagsBits } from "discord.js";
 import Command from "./command";
 
-type Perm = keyof typeof PermissionFlagsBits;
+export type Perm = keyof typeof PermissionFlagsBits;
 
 export const intToBitField = (int: bigint): Perm[] => (Object.keys(PermissionFlagsBits) as Perm[]).filter((perm) => int & PermissionFlagsBits[perm]);
 

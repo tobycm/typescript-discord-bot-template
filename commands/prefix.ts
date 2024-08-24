@@ -11,6 +11,8 @@ data.addStringOption((option) => option.setName("prefix").setDescription("The ne
 
 export default new Command({
   data,
+  guildOnly: true,
+
   run(ctx) {
     const prefix = ctx.options.get("prefix");
 

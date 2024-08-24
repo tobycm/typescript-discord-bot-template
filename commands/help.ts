@@ -2,7 +2,7 @@ import Bot from "Bot";
 import { bold, codeBlock, inlineCode, SlashCommandBuilder, SlashCommandStringOption, strikethrough } from "discord.js";
 import Command from "modules/command";
 import Constants from "modules/constants";
-import { checkPermissions, commandUsage, intToBitField } from "modules/utils";
+import { checkPermissions, commandUsage, intToBitField, Perm } from "modules/utils";
 
 const data = new SlashCommandBuilder().setName("help").setDescription("Show help for commands.");
 
@@ -22,7 +22,7 @@ export function setHelpChoices(bot: Bot) {
 export default new Command({
   data,
   async run(ctx) {
-    const commandName = ctx.options.get("command") as string | undefined;
+    const commandName = ctx.options.get("command");
 
     if (commandName) {
       const command = ctx.bot.commands.get(commandName);
@@ -31,7 +31,11 @@ export default new Command({
         ctx.reply(`I couldn't find a command with the name ${inlineCode(commandName)}.`);
         return;
       }
-      const prefix = ctx.bot.cache.get(`servers:${ctx.guild.id}:prefix`) ?? Constants.defaultPrefix;
+      let prefix = Constants.defaultPrefix;
+
+      if (ctx.guild) {
+        prefix = ctx.bot.cache.get(`servers:${ctx.guild.id}:prefix`) ?? Constants.defaultPrefix;
+      }
 
       let content = "# " + bold(inlineCode(command.data.name)) + "\n" + command.data.description;
 
@@ -40,12 +44,21 @@ export default new Command({
       content += "\n-# [] are optional arguments | <> are required arguments";
 
       if (command.data.default_member_permissions) {
-        const missingPermissions = checkPermissions(ctx.member, BigInt(command.data.default_member_permissions));
-        const permissions = intToBitField(BigInt(command.data.default_member_permissions)).filter((perm) => !missingPermissions.includes(perm));
+        let missingPermissions: Perm[] = [];
+        if (ctx.member) missingPermissions = checkPermissions(ctx.member, BigInt(command.data.default_member_permissions));
+
+        const permissions = intToBitField(BigInt(command.data.default_member_permissions));
         content += `\n## Permissions:\n`;
 
-        content += codeBlock("ansi", "\u001b[0;36m" + [permissions.join(", "), missingPermissions.join(", ")].join("\u001b[1;31m"));
-        content += "\n-# Green permissions are granted | Red permissions are missing";
+        if (!ctx.guild) content += codeBlock(permissions.join(", "));
+        else {
+          content += codeBlock(
+            "ansi",
+            "\u001b[0;36m" +
+              [permissions.filter((perm) => !missingPermissions.includes(perm)).join(", "), missingPermissions.join(", ")].join("\u001b[1;31m")
+          );
+          content += "\n-# Green permissions are granted | Red permissions are missing";
+        }
       }
 
       ctx.reply({ content, ephemeral: true });
@@ -54,10 +67,12 @@ export default new Command({
 
     const commands = Array.from(ctx.bot.commands.values()).map((command) => {
       const content = `${bold(inlineCode(command.data.name))} - ${command.data.description}`;
-      if (command.data.default_member_permissions) {
+      if (command.data.default_member_permissions && ctx.member) {
         const missingPermissions = checkPermissions(ctx.member, BigInt(command.data.default_member_permissions));
         if (missingPermissions.length) return `${strikethrough(content)} - (Missing permissions: ${inlineCode(missingPermissions.join(", "))})`;
       }
+
+      if (!ctx.guild && command.guildOnly) return `${strikethrough(content)} - (Server only)`;
       return content;
     });
 

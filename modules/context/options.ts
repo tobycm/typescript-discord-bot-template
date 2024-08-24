@@ -1,7 +1,17 @@
-export default class CommandOptions extends Map<string, any | undefined> {
-  get<T extends string | number = string>(key: string, required = false): T | undefined {
-    const v = super.get(key) as T | undefined;
+type SupportedTypes = string | number | boolean;
 
+export default class CommandOptions {
+  private options = new Map<string, SupportedTypes>();
+
+  set(key: string, value: SupportedTypes): this {
+    this.options.set(key, value);
+    return this;
+  }
+
+  get<T extends SupportedTypes = string>(key: string): T | undefined;
+  get<T extends SupportedTypes = string>(key: string, required: true): T;
+  get(key: string, required = false) {
+    const v = this.options.get(key);
     if (required) return v!;
     return v;
   }
