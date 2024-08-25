@@ -17,7 +17,7 @@ interface BotOptions {
   acebase: AceBaseLocalOptions | AceBaseClientOptions;
 }
 
-export default class Bot extends Client {
+export default class Bot<Ready extends boolean = boolean> extends Client<Ready> {
   constructor(options: BotOptions) {
     super(options.discord);
 

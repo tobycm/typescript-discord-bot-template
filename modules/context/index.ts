@@ -19,7 +19,7 @@ interface ReplyOptions {
 }
 
 export interface BaseContext<GuildOnly extends boolean = false> {
-  bot: Bot;
+  bot: Bot<true>;
   channel: GuildOnly extends true ? GuildTextBasedChannel : TextBasedChannel;
   guild: GuildOnly extends true ? Guild : Guild | null;
   author: User;
@@ -35,7 +35,7 @@ export interface BaseContext<GuildOnly extends boolean = false> {
   reply(options: ReplyOptions): Promise<BaseContext>;
 }
 
-export interface MessageContext extends BaseContext {
+export interface MessageContext<GuildOnly extends boolean = false> extends BaseContext<GuildOnly> {
   original: Message;
 
   send(message: string): Promise<MessageContext>;
@@ -85,7 +85,7 @@ export const MessageContext = (message: Message): MessageContext => ({
 //   }
 // }
 
-export interface ChatInputInteractionContext extends BaseContext {
+export interface ChatInputInteractionContext<GuildOnly extends boolean = false> extends BaseContext<GuildOnly> {
   original: ChatInputCommandInteraction;
 
   send(message: string): Promise<InteractionResponseContext>;
@@ -149,7 +149,7 @@ export interface InteractionResponseContext extends BaseContext {
 }
 
 export const InteractionResponseContext = (response: InteractionResponse<true>): InteractionResponseContext => ({
-  bot: response.client,
+  bot: response.client as Bot<true>,
   channel: response.interaction.channel!,
   guild: response.interaction.guild,
   author: response.interaction.user,

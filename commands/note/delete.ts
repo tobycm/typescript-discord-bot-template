@@ -1,13 +1,9 @@
 import { inlineCode, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import Command from "modules/command";
 
-const data = new SlashCommandBuilder().setName("setnote").setDescription("Let me remember a note for you.");
+const data = new SlashCommandBuilder().setName("deletenote").setDescription("Delete a saved note.");
 
-data.addStringOption((option) => option.setName("name").setDescription("The name of the note").setMinLength(1).setMaxLength(90).setRequired(true));
-data.addStringOption((option) => option.setName("note").setDescription("The content of the note").setRequired(true));
-data.addBooleanOption((option) =>
-  option.setName("public").setDescription("Whether the note should be public (server-wide). Defaults to false").setRequired(false)
-);
+data.addStringOption((option) => option.setName("name").setDescription("The name of the note").setRequired(true));
 
 export default new Command({
   data,
@@ -24,7 +20,7 @@ export default new Command({
       if (!ctx.member?.permissions.has(PermissionFlagsBits.ManageGuild))
         return ctx.reply({ content: "You need the `ManageGuild` permission to set a public note", ephemeral: true });
       ctx.bot.db.ref("servers").child(ctx.guild.id).child("notes").child(name).set(note);
-      ctx.bot.cache.set(`servers:${ctx.guild.id}:notes:${name}`, note);
+      ctx.bot.cache.set(`notes:${name}`, note);
     }
 
     ctx.reply({ content: `I've remembered your note ${inlineCode(name)}.`, ephemeral: true, allowedMentions: { parse: [] } });

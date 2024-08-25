@@ -1,11 +1,11 @@
 import { AutocompleteInteraction, SlashCommandBuilder } from "discord.js";
-import { BaseContext } from "./context";
+import { ChatInputInteractionContext, MessageContext } from "./context";
 
 interface CommandOptions<GuildOnly extends boolean = false> {
   data: SlashCommandBuilder;
   guildOnly?: GuildOnly;
 
-  run: (context: BaseContext<GuildOnly>) => any | Promise<any>;
+  run: (context: MessageContext<GuildOnly> | ChatInputInteractionContext<GuildOnly>) => any | Promise<any>;
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }
 
@@ -21,6 +21,6 @@ export default class Command<GuildOnly extends boolean = boolean> {
   data: SlashCommandBuilder;
   guildOnly: GuildOnly;
 
-  run: (context: BaseContext<GuildOnly>) => any | Promise<any>;
+  run: (context: MessageContext<GuildOnly> | ChatInputInteractionContext<GuildOnly>) => any | Promise<any>;
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }
