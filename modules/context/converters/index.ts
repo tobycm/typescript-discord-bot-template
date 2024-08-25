@@ -1,22 +1,23 @@
-import { SlashCommandBooleanOption, SlashCommandBuilder, SlashCommandIntegerOption, SlashCommandStringOption, inlineCode } from "discord.js";
+import { ApplicationCommandOptionBase, SlashCommandBooleanOption, SlashCommandIntegerOption, SlashCommandStringOption, inlineCode } from "discord.js";
 import { MessageContext } from "..";
 import parseAndValidateBoolean from "./validators/boolean";
 import validateInteger from "./validators/integer";
 import validateString from "./validators/string";
 
-export function messageToInteractionOptions(ctx: MessageContext, args: string[], options: SlashCommandBuilder["options"]) {
+export function messageToInteractionOptions(ctx: MessageContext, args: string[], options: ApplicationCommandOptionBase[]) {
   for (const option of options) {
     const arg = args.shift();
 
-    if (option instanceof SlashCommandStringOption) {
-      if (!arg) {
-        if (option.required) {
-          ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
-          return;
-        }
-        continue;
+    if (!arg) {
+      if (option.required) {
+        ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
+        return;
       }
 
+      continue;
+    }
+
+    if (option instanceof SlashCommandStringOption) {
       const result = validateString(arg, option);
       if (result) return ctx.reply(result);
 
@@ -24,12 +25,6 @@ export function messageToInteractionOptions(ctx: MessageContext, args: string[],
     }
 
     if (option instanceof SlashCommandIntegerOption) {
-      if (!arg)
-        if (option.required) {
-          ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
-          return;
-        } else continue;
-
       const result = validateInteger(arg, option);
       if (result) return ctx.reply(result);
 
@@ -37,15 +32,6 @@ export function messageToInteractionOptions(ctx: MessageContext, args: string[],
     }
 
     if (option instanceof SlashCommandBooleanOption) {
-      if (!arg) {
-        if (option.required) {
-          ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
-          return;
-        }
-
-        continue;
-      }
-
       const result = parseAndValidateBoolean(arg);
       if (typeof result === "string") return ctx.reply(result);
 

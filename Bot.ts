@@ -21,17 +21,9 @@ export default class Bot extends Client {
   constructor(options: BotOptions) {
     super(options.discord);
 
-    if (options.acebase.type === "local") {
-      this.db = new AceBase(options.acebase.databaseName);
-    }
-    if (options.acebase.type === "client") {
-      this.db = new AceBaseClient(options.acebase);
-    }
-
-    this.db.on("connecting", () => console.debug("Connecting to Redis"));
-    this.db.on("connect", () => console.log("Connected to Redis"));
-
-    this.db.on("error", (error) => console.error("Redis error:", error));
+    if (options.acebase.type === "local") this.db = new AceBase(options.acebase.databaseName);
+    else if (options.acebase.type === "client") this.db = new AceBaseClient(options.acebase);
+    else this.db = new AceBase("bot");
   }
 
   commands = new Map<string, Command>();

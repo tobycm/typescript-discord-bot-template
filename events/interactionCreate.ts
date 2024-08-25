@@ -19,7 +19,7 @@ export default (bot: Bot) => {
     if (!command) return;
 
     try {
-      await command.run(new ChatInputInteractionContext(interaction));
+      await command.run(ChatInputInteractionContext(interaction));
     } catch (error) {
       console.error(error);
       await interaction.reply("An error occurred while executing this command.");

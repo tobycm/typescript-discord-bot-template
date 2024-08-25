@@ -1,5 +1,5 @@
 import Bot from "Bot";
-import { Events, inlineCode, userMention } from "discord.js";
+import { ApplicationCommandOptionBase, Events, inlineCode, userMention } from "discord.js";
 import Constants from "modules/constants";
 import { MessageContext } from "modules/context";
 import { messageToInteractionOptions } from "modules/context/converters";
@@ -10,21 +10,25 @@ import { checkPermissions } from "modules/utils";
 export default function messageCreateEvent(bot: Bot) {
   bot.on(Events.MessageCreate, async (message) => {
     if (message.author.bot) return;
-    if (!message.inGuild()) return;
 
-    let prefix = message.client.cache.get(`servers:${message.guild.id}:prefix`) as string | null | undefined;
+    let prefix: string | null = Constants.defaultPrefix;
 
-    if (prefix === undefined) {
-      // cache miss
-      const s = await message.client.db.ref("servers").child(message.guild.id).child("prefix").get();
+    if (message.inGuild()) {
+      const guildPrefix = message.client.cache.get(`servers:${message.guild.id}:prefix`) as string | null | undefined;
 
-      if (!s.exists())
-        // default prefix
-        prefix = null;
-      else prefix = s.val();
+      if (guildPrefix === undefined) {
+        // cache miss
+        const s = await message.client.db.ref("servers").child(message.guild.id).child("prefix").get();
 
-      message.client.cache.set(`servers:${message.guild.id}:prefix`, prefix);
+        if (!s.exists())
+          // default prefix
+          prefix = null;
+        else prefix = s.val();
+
+        message.client.cache.set(`servers:${message.guild.id}:prefix`, prefix);
+      }
     }
+
     if (prefix === null) prefix = Constants.defaultPrefix;
 
     if (message.content === userMention(message.client.user?.id)) {
@@ -52,7 +56,12 @@ export default function messageCreateEvent(bot: Bot) {
       const command = message.client.commands.get(commandName);
       if (!command) return;
 
-      if (command.data.default_member_permissions) {
+      if (command.guildOnly && !message.inGuild()) {
+        await message.reply("This command can only be used in a server.");
+        return;
+      }
+
+      if (command.data.default_member_permissions && message.member) {
         const missingPermissions = checkPermissions(message.member, BigInt(command.data.default_member_permissions));
 
         if (missingPermissions.length) {
@@ -61,8 +70,8 @@ export default function messageCreateEvent(bot: Bot) {
         }
       }
 
-      const ctx = new MessageContext(message);
-      messageToInteractionOptions(ctx, args, command.data.options);
+      const ctx = MessageContext(message);
+      messageToInteractionOptions(ctx, args, command.data.options as ApplicationCommandOptionBase[]);
 
       try {
         await command.run(ctx);

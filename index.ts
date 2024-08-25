@@ -1,4 +1,4 @@
-import { GatewayIntentBits } from "discord.js";
+import { GatewayIntentBits, Partials } from "discord.js";
 import Bot from "./Bot";
 import setupCommands from "./commands";
 import { setupBotEvents, setupDatabaseEvents } from "./events";
@@ -11,7 +11,9 @@ const bot = new Bot({
       GatewayIntentBits.GuildMessages,
       GatewayIntentBits.GuildVoiceStates,
       GatewayIntentBits.MessageContent,
+      GatewayIntentBits.DirectMessages,
     ],
+    partials: [Partials.Channel],
   },
   acebase: {
     type: "local",

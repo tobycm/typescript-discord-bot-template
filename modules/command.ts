@@ -9,7 +9,7 @@ interface CommandOptions<GuildOnly extends boolean = false> {
   completion?: (interaction: AutocompleteInteraction) => any | Promise<any>;
 }
 
-export default class Command<GuildOnly extends boolean = false> {
+export default class Command<GuildOnly extends boolean = boolean> {
   constructor(options: CommandOptions<GuildOnly>) {
     this.data = options.data;
     this.guildOnly = (options.guildOnly ?? false) as GuildOnly;
