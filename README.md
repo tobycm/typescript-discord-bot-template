@@ -4,13 +4,13 @@
 
 <!-- ![Preview #1](url) -->
 
-## 🎉 Features Showcase
+## 🎉 Features
 
 - **Customizable Prefixes**: Tailor the bot's command prefix for each server.
 - **Hybrid Commands**: Support for various command types with built-in permission handling.
 - **Easy Slash Command Deployment**: Quickly deploy slash commands with minimal setup.
 
-## 🛠️ Built-in features
+## 🛠️ Built-in Tools
 
 - **Database** powered by [AceBase](https://github.com/appy-one/acebase).
 - **Simple cache** mechanism using key-value storage.
