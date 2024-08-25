@@ -1,4 +1,6 @@
-type SupportedTypes = string | number | boolean;
+import { GuildMember } from "discord.js";
+
+type SupportedTypes = string | number | boolean | GuildMember;
 
 export default class CommandOptions {
   private options = new Map<string, SupportedTypes>();

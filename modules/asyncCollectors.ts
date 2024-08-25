@@ -1,11 +1,11 @@
-import { InteractionCollector as DInteractionCollector, Interaction } from "discord.js";
+import { Interaction, InteractionCollector } from "discord.js";
 
-export function collectFirstInteraction<Type extends Interaction = Interaction>(...args: ConstructorParameters<typeof DInteractionCollector>) {
+export function collectFirstInteraction<Type extends Interaction = Interaction>(...args: ConstructorParameters<typeof InteractionCollector>) {
   if (!args[1]) args[1] = {};
   args[1].max = 1;
 
   return new Promise<Type>((resolve, reject) => {
-    new DInteractionCollector(...args).on("collect", resolve);
+    new InteractionCollector(...args).on("collect", resolve);
 
     setTimeout(() => {
       reject("No interactions collected");

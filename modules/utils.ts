@@ -38,3 +38,13 @@ export function commandUsage(command: Command): string {
 
   return args.join(" ");
 }
+
+export function parseIdFromUserMention(mention: string): string {
+  if (!mention.startsWith("<@") || !mention.endsWith(">")) return "";
+
+  mention = mention.slice(2, -1);
+
+  if (mention.startsWith("!")) mention = mention.slice(1);
+
+  return mention;
+}

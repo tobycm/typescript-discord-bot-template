@@ -1,4 +1,12 @@
-import { ApplicationCommandOptionBase, SlashCommandBooleanOption, SlashCommandIntegerOption, SlashCommandStringOption, inlineCode } from "discord.js";
+import {
+  ApplicationCommandOptionBase,
+  SlashCommandBooleanOption,
+  SlashCommandIntegerOption,
+  SlashCommandStringOption,
+  SlashCommandUserOption,
+  inlineCode,
+} from "discord.js";
+import { parseIdFromUserMention } from "modules/utils";
 import { MessageContext } from "..";
 import parseAndValidateBoolean from "./validators/boolean";
 import validateInteger from "./validators/integer";
@@ -36,6 +44,23 @@ export function messageToInteractionOptions(ctx: MessageContext, args: string[],
       if (typeof result === "string") return ctx.reply(result);
 
       ctx.options.set(option.name, result);
+    }
+
+    if (option instanceof SlashCommandUserOption) {
+      let user = ctx.guild?.members.cache.find((member) => member.nickname === arg);
+
+      if (!user) user = ctx.guild?.members.cache.find((member) => member.user.username === arg);
+
+      if (!user) user = ctx.guild?.members.cache.get(arg);
+      if (!user) {
+        const id = parseIdFromUserMention(arg);
+        if (!id) return ctx.reply("User not found in this server");
+        user = ctx.guild?.members.cache.get(id);
+      }
+
+      if (!user) return ctx.reply("User not found in this server");
+
+      ctx.options.set(option.name, user);
     }
   }
 }

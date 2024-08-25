@@ -6,6 +6,7 @@ import {
   ChatInputCommandInteraction,
   ComponentType,
   inlineCode,
+  Message,
   ModalBuilder,
   PermissionFlagsBits,
   SlashCommandBuilder,
@@ -14,7 +15,7 @@ import {
 } from "discord.js";
 import { collectFirstInteraction } from "modules/asyncCollectors";
 import Command from "modules/command";
-import { ChatInputInteractionContext, MessageContext } from "modules/context";
+import { ButtonInteractionContext, ChatInputInteractionContext, MessageContext } from "modules/context";
 
 const data = new SlashCommandBuilder().setName("updatenote").setDescription("Update a saved note.");
 
@@ -44,31 +45,38 @@ const updateNoteAccess = (note: Note) =>
     new ButtonBuilder().setCustomId(`updateNote ${note.name} public`).setStyle(ButtonStyle.Danger).setLabel("Public").setEmoji("🌐")
   );
 
-async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteractionContext, note: Note) {
+async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteractionContext | ButtonInteractionContext, note: Note) {
   if (!ctx.member!.permissions.has(PermissionFlagsBits.ManageGuild))
     return ctx.reply({ content: "You need the `ManageGuild` permission to update a public note", ephemeral: true });
 
   let interaction: ChatInputCommandInteraction | ButtonInteraction;
 
-  if (ctx.original instanceof ChatInputCommandInteraction) {
-    ctx.original.deferReply();
+  if (!(ctx.original instanceof Message)) {
+    // if (!ctx.original.replied) ctx.original.deferReply();
 
     interaction = ctx.original;
   } else {
-    ctx.original.reply({
+    const button = new ButtonBuilder().setCustomId(`updateNoteServer ${note.name}`).setLabel("Update");
+
+    const reply = await ctx.original.reply({
       content: "Please click the button to open the update modal.",
-      components: [
-        new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId(`updateNoteServer ${name}`).setLabel("Update")),
-      ],
+      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)],
     });
 
-    const openModal = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
-      componentType: ComponentType.Button,
-      filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId === `updateNoteServer ${name}`,
-      time: 30000,
-    });
+    try {
+      const openModal = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
+        componentType: ComponentType.Button,
+        filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId === `updateNoteServer ${note.name}`,
+        time: 30000,
+      });
 
-    interaction = openModal;
+      interaction = openModal;
+    } catch (e) {
+      button.setDisabled(true);
+
+      reply.edit({ content: "You didn't click the button in time.", components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)] });
+      return;
+    }
   }
 
   interaction.showModal(updateNoteModal(note, ctx.guild!.name));
@@ -78,17 +86,27 @@ async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteraction
     time: 120000,
   });
 
-  modalResponse.reply({
+  const row = updateNoteAccess(note);
+
+  const reply = await modalResponse.reply({
     content: `What privacy setting would you like to update your note ${inlineCode(note.name)} to? Current setting: Public`,
-    components: [updateNoteAccess(note)],
+    components: [row],
   });
 
-  const privacyResponse = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
-    componentType: ComponentType.Button,
-    filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${name}`),
-    time: 30000,
-  });
+  let privacyResponse: ButtonInteraction;
 
+  try {
+    privacyResponse = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
+      componentType: ComponentType.Button,
+      filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${note.name}`),
+      time: 30000,
+    });
+  } catch {
+    for (const button of row.components) button.setDisabled(true);
+
+    reply.edit({ content: "Update request expired.", components: [row] });
+    return;
+  }
   const isPublic = privacyResponse.customId.endsWith("public");
 
   if (isPublic) {
@@ -107,26 +125,34 @@ async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteraction
   privacyResponse.reply({ content: `I've updated your note ${inlineCode(note.name)}.`, ephemeral: true });
 }
 
-async function handleUpdateUserNote(ctx: MessageContext | ChatInputInteractionContext, note: Note) {
+async function handleUpdateUserNote(ctx: MessageContext | ChatInputInteractionContext | ButtonInteractionContext, note: Note) {
   let interaction: ChatInputCommandInteraction | ButtonInteraction;
 
-  if (ctx.original instanceof ChatInputCommandInteraction) {
-    ctx.original.deferReply();
+  if (!(ctx.original instanceof Message)) {
+    // if (!ctx.original.replied) ctx.original.deferReply();
 
     interaction = ctx.original;
   } else {
-    ctx.original.reply({
+    const button = new ButtonBuilder().setCustomId(`updateNote ${note.name}`).setLabel("Update");
+    const reply = await ctx.original.reply({
       content: "Please click the button to open the update modal.",
-      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId(`updateNote ${name}`).setLabel("Update"))],
+      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)],
     });
 
-    const openModal = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
-      componentType: ComponentType.Button,
-      filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId === `updateNote ${name}`,
-      time: 30000,
-    });
+    try {
+      const openModal = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
+        componentType: ComponentType.Button,
+        filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId === `updateNote ${note.name}`,
+        time: 30000,
+      });
 
-    interaction = openModal;
+      interaction = openModal;
+    } catch {
+      button.setDisabled(true);
+
+      reply.edit({ content: "You didn't click the button in time.", components: [new ActionRowBuilder<ButtonBuilder>().addComponents(button)] });
+      return;
+    }
   }
 
   interaction.showModal(updateNoteModal(note));
@@ -143,7 +169,7 @@ async function handleUpdateUserNote(ctx: MessageContext | ChatInputInteractionCo
 
   const privacyResponse = await collectFirstInteraction<ButtonInteraction>(ctx.bot, {
     componentType: ComponentType.Button,
-    filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${name}`),
+    filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${note.name}`),
     time: 30000,
   });
 
@@ -215,9 +241,12 @@ export default new Command({
         time: 30000,
       });
 
-      if (selectNote.customId.startsWith("updateNoteServer")) return await handleUpdateServerNote(ctx, { name, content: serverNote });
-    }
+      (selectNote.customId.startsWith("updateNoteServer") ? handleUpdateServerNote : handleUpdateUserNote)(ButtonInteractionContext(selectNote), {
+        name,
+        content: selectNote.customId.startsWith("updateNoteServer") ? serverNote : userNote,
+      });
 
-    await handleUpdateUserNote(ctx, { name, content: userNote });
+      return;
+    }
   },
 });

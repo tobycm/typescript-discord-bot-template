@@ -1,5 +1,5 @@
 import Bot from "Bot";
-import { Events } from "discord.js";
+import { Events, GuildMember } from "discord.js";
 import { ChatInputInteractionContext } from "modules/context";
 
 export default (bot: Bot) => {
@@ -19,7 +19,15 @@ export default (bot: Bot) => {
     if (!command) return;
 
     try {
-      await command.run(ChatInputInteractionContext(interaction));
+      const ctx = ChatInputInteractionContext(interaction);
+
+      for (const option of interaction.options.data) {
+        if (option.value === undefined) continue;
+
+        ctx.options.set(option.name, (option.member as GuildMember) ?? option.value);
+      }
+
+      await command.run(ctx);
     } catch (error) {
       console.error(error);
       await interaction.reply("An error occurred while executing this command.");
