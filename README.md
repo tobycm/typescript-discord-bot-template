@@ -39,7 +39,7 @@ For more detailed documentation, check out the [Wiki](https://github.com/tobycm/
 
 ## 📄 License
 
-- This template is licensed under the MIT License. See the [`LICENSE`](https://github.com/tobycm/typescript-discord-bot-template/blob/main/LICENSE).
+This template is licensed under the MIT License. See the [`LICENSE`](https://github.com/tobycm/typescript-discord-bot-template/blob/main/LICENSE).
 
 ## 🤝 Contributions
 
