@@ -3,7 +3,7 @@ import Command from "modules/command";
 
 const data = new SlashCommandBuilder().setName("setnote").setDescription("Let me remember a note for you.");
 
-data.addStringOption((option) => option.setName("name").setDescription("The name of the note").setMinLength(1).setMaxLength(90).setRequired(true));
+data.addStringOption((option) => option.setName("name").setDescription("The name of the note").setMinLength(1).setMaxLength(65).setRequired(true));
 data.addStringOption((option) => option.setName("note").setDescription("The content of the note").setRequired(true));
 data.addBooleanOption((option) =>
   option.setName("public").setDescription("Whether the note should be public (server-wide). Defaults to false").setRequired(false)

@@ -3,6 +3,7 @@ import {
   ButtonBuilder,
   ButtonStyle,
   ChatInputCommandInteraction,
+  ComponentType,
   Events,
   inlineCode,
   InteractionCollector,
@@ -12,6 +13,7 @@ import {
   TextInputBuilder,
   TextInputStyle,
 } from "discord.js";
+import { collectFirstInteraction } from "modules/asyncCollectors";
 import Command from "modules/command";
 import { ChatInputInteractionContext, MessageContext } from "modules/context";
 
@@ -41,6 +43,27 @@ const updateNoteAccess = (note: { name: string }) =>
     new ButtonBuilder().setCustomId(`updateNote ${note.name} public`).setStyle(ButtonStyle.Danger).setLabel("Public").setEmoji("🌐")
   );
 
+async function handleUpdateDatabaseServerNote(
+  ctx: MessageContext | ChatInputInteractionContext,
+  name: string,
+  content: string,
+  isPublic: boolean = true
+) {
+  if (isPublic) {
+    // just need to save new note
+    ctx.bot.db.ref("servers").child(ctx.guild!.id).child("notes").child(name).set(content);
+    ctx.bot.cache.set(`servers:${ctx.guild!.id}:notes:${name}`, content);
+    return;
+  }
+
+  // delete old note and save new note
+  ctx.bot.db.ref("servers").child(ctx.guild!.id).child("notes").child(name).remove();
+  ctx.bot.cache.delete(`servers:${ctx.guild!.id}:notes:${name}`);
+
+  ctx.bot.db.ref("users").child(ctx.author.id).child("notes").child(name).set(content);
+  ctx.bot.cache.set(`users:${ctx.author.id}:notes:${name}`, content);
+}
+
 async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteractionContext, name: string, content: string) {
   if (!ctx.member!.permissions.has(PermissionFlagsBits.ManageGuild))
     return ctx.reply({ content: "You need the `ManageGuild` permission to update a public note", ephemeral: true });
@@ -52,36 +75,23 @@ async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteraction
     const newNote = (
       await ctx.original.awaitModalSubmit({
         filter: (interaction) => interaction.customId === `updateNote ${name}`,
+
         time: 120000,
       })
     ).fields.getTextInputValue("note");
 
-    await ctx.original.reply({
+    await ctx.original.editReply({
       content: `What privacy setting would you like to update your note ${inlineCode(name)} to? Current setting: Public`,
       components: [updateNoteAccess({ name })],
     });
 
     new InteractionCollector(ctx.bot, {
-      filter: (interaction) =>
-        interaction.isButton() && interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${name}`),
+      componentType: ComponentType.Button,
+      filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${name}`),
       time: 30000,
-    }).on(Events.InteractionCreate, async (interaction) => {
-      if (!interaction.isButton()) return;
-      if (interaction.user.id !== ctx.author.id) interaction.reply({ content: "This button is not for you lmao.", ephemeral: true });
-
+    }).on("collect", async (interaction) => {
       const isPublic = interaction.customId.endsWith("public");
-      if (isPublic) {
-        // just need to save new note
-        ctx.bot.db.ref("servers").child(ctx.guild!.id).child("notes").child(name).set(newNote);
-        ctx.bot.cache.set(`servers:${ctx.guild!.id}:notes:${name}`, newNote);
-      } else {
-        // delete old note and save new note
-        ctx.bot.db.ref("servers").child(ctx.guild!.id).child("notes").child(name).remove();
-        ctx.bot.cache.delete(`servers:${ctx.guild!.id}:notes:${name}`);
-
-        ctx.bot.db.ref("users").child(ctx.author.id).child("notes").child(name).set(newNote);
-        ctx.bot.cache.set(`users:${ctx.author.id}:notes:${name}`, newNote);
-      }
+      await handleUpdateDatabaseServerNote(ctx, name, newNote, isPublic);
 
       interaction.reply({ content: `I've updated your note ${inlineCode(name)}.`, ephemeral: true });
     });
@@ -89,8 +99,53 @@ async function handleUpdateServerNote(ctx: MessageContext | ChatInputInteraction
     return;
   } else {
     ctx.original.reply({
-      components: [new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId(`updateNote ${name}`).setLabel("Update"))],
+      content: "Please click the button to open the update modal.",
+      components: [
+        new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId(`updateNoteServer ${name}`).setLabel("Update")),
+      ],
     });
+
+    const openModal = await collectFirstInteraction(ctx.bot, {
+      componentType: ComponentType.Button,
+      filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId === `updateNoteServer ${name}`,
+      time: 30000,
+    });
+
+    new InteractionCollector(ctx.bot, {
+      componentType: ComponentType.Button,
+      filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId === `updateNoteServer ${name}`,
+      time: 30000,
+      max: 1,
+    }).on("collect", async (interaction) => {
+      if (!interaction.isButton()) return;
+      interaction.showModal(updateNoteModal({ name, content }, ctx.guild!.name));
+
+      const newNote = (
+        await interaction.awaitModalSubmit({
+          filter: (interaction) => interaction.customId === `updateNote ${name}`,
+          time: 120000,
+        })
+      ).fields.getTextInputValue("note");
+
+      await ctx.reply({
+        content: `What privacy setting would you like to update your note ${inlineCode(name)} to? Current setting: Public`,
+        components: [updateNoteAccess({ name })],
+      });
+
+      new InteractionCollector(ctx.bot, {
+        componentType: ComponentType.Button,
+        filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith(`updateNote ${name}`),
+        time: 30000,
+        max: 1,
+      }).on("collect", async (interaction) => {
+        const isPublic = interaction.customId.endsWith("public");
+
+        await handleUpdateDatabaseServerNote(ctx, name, newNote, isPublic);
+
+        interaction.reply({ content: `I've updated your note ${inlineCode(name)}.`, ephemeral: true });
+      });
+    });
+
     return;
   }
 }
@@ -135,11 +190,41 @@ export default new Command({
           content: `I found a private and public note with the name ${inlineCode(name)}. Which one would you like to update?`,
           components: [
             new ActionRowBuilder<ButtonBuilder>().addComponents(
-              new ButtonBuilder().setCustomId(`updateNote ${name} private`).setStyle(ButtonStyle.Success).setLabel("Private").setEmoji("🔒"),
-              new ButtonBuilder().setCustomId(`updateNote ${name} public`).setStyle(ButtonStyle.Danger).setLabel("Public").setEmoji("🌐")
+              new ButtonBuilder().setCustomId(`updateNote ${name}`).setStyle(ButtonStyle.Success).setLabel("Private").setEmoji("🔒"),
+              new ButtonBuilder().setCustomId(`updateNoteServer ${name}`).setStyle(ButtonStyle.Danger).setLabel("Public").setEmoji("🌐")
             ),
           ],
         });
+
+        new InteractionCollector(ctx.bot, {
+          componentType: ComponentType.Button,
+          filter: (interaction) => interaction.user.id === ctx.author.id && interaction.customId.startsWith("update"),
+          time: 30000,
+        }).on(Events.InteractionCreate, async (interaction) => {
+          if (!interaction.isButton()) return;
+          if (interaction.user.id !== ctx.author.id) interaction.reply({ content: "This button is not for you lmao.", ephemeral: true });
+
+          const isServer = interaction.customId.startsWith("updateNoteServer");
+          if (isServer) {
+            await handleUpdateServerNote(ctx, name, serverNote!);
+          } else {
+            await ctx.original.deferReply();
+            await ctx.original.showModal(updateNoteModal({ name, content: userNote }, "yourself"));
+            const newNote = (
+              await ctx.original.awaitModalSubmit({
+                filter: (interaction) => interaction.customId === `updateNote ${name}`,
+                time: 120000,
+              })
+            ).fields.getTextInputValue("note");
+
+            ctx.bot.db.ref("users").child(ctx.author.id).child("notes").child(name).set(newNote);
+            ctx.bot.cache.set(`users:${ctx.author.id}:notes:${name}`, newNote);
+
+            interaction.reply({ content: `I've updated your note ${inlineCode(name)}.`, ephemeral: true });
+          }
+        });
+
+        interaction;
       }
     }
 

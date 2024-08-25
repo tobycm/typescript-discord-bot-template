@@ -7,6 +7,7 @@ import {
   InteractionResponse,
   Message,
   MessageMentionOptions,
+  MessageReplyOptions,
   TextBasedChannel,
   User,
 } from "discord.js";
@@ -16,6 +17,7 @@ interface ReplyOptions {
   content: string;
   allowedMentions?: MessageMentionOptions;
   ephemeral?: boolean;
+  components?: MessageReplyOptions["components"];
 }
 
 export interface BaseContext<GuildOnly extends boolean = false> {
