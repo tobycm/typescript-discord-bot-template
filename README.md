@@ -1,6 +1,6 @@
 <!-- <img src="" alt="Brand"> -->
 
-# A robust and comprehensive Template for your next TypeScript Discord Bot.
+# A robust and comprehensive TypeScript template for your next Discord Bot.
 
 <!-- ![Preview #1](url) -->
 
