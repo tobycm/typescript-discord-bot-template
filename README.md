@@ -4,6 +4,8 @@
 
 <!-- ![Preview #1](url) -->
 
+![Commands demo](https://cloud-2ahhw7s5v-hack-club-bot.vercel.app/0image.png)
+
 ## 🎉 Features
 
 - **Customizable Prefixes**: Tailor the bot's command prefix for each server.
@@ -18,12 +20,31 @@
 
 ## 🚀 Getting Started
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/tobycm/typescript-discord-bot-template.git
-   ```
+1. **Install dependencies**
+```sh
+bun i
+```  
 
-<!-- TODO: continue this section -->
+or 
+
+```sh
+npm i
+```
+
+(replace bun with npm from now on if you don't have bun)
+
+2. **Init environment**
+```sh
+bun run init
+code .env
+```
+
+Replace variables with appropriate values. `ADMINS` is a comma-seperated list.
+
+3. **Run the bot**
+```sh
+bun run start
+```
 
 <!-- ## ❓ FAQ
 
@@ -70,3 +91,4 @@ Share this template with your community if you find it useful!
   Share the link with your Discord communities and groups who might find this template useful.
 
 <!-- TODO: replace the texts with buttons -->
+<!-- Nah i think this is cute XD -->
