@@ -1,5 +1,7 @@
+import Bot from "Bot";
 import { ApplicationCommandOptionBase, ApplicationCommandOptionType, GuildMember, PermissionFlagsBits } from "discord.js";
 import Command from "./command";
+import { BaseContext } from "./context";
 
 export type Perm = keyof typeof PermissionFlagsBits;
 
@@ -47,4 +49,16 @@ export function parseIdFromUserMention(mention: string): string {
   if (mention.startsWith("!")) mention = mention.slice(1);
 
   return mention;
+}
+
+export async function getUserLang(ctx: Omit<BaseContext, "lang">): Promise<Bot["lang"][keyof Bot["lang"]]> {
+  const lang = ctx.bot.cache.get(`users:${ctx.author.id}:lang`) as keyof Bot["lang"];
+
+  if (lang) return ctx.bot.lang[lang];
+
+  const user = await ctx.bot.db.ref("users").child(ctx.author.id).get<keyof Bot["lang"]>();
+
+  if (!user.exists()) return ctx.bot.lang["en-us"];
+
+  return ctx.bot.lang[user.val()!];
 }

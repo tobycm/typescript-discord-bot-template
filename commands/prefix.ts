@@ -20,13 +20,13 @@ export default new Command({
       ctx.bot.db.ref("servers").child(ctx.guild.id).child("prefix").remove();
       ctx.bot.cache.delete(`servers:${ctx.guild.id}:prefix`);
 
-      ctx.reply("I've reset the prefix to the default one.");
+      ctx.reply(ctx.lang.commands.prefix.reset);
       return;
     }
 
     ctx.bot.db.ref("servers").child(ctx.guild.id).child("prefix").set(prefix);
     ctx.bot.cache.set(`servers:${ctx.guild.id}:prefix`, prefix);
 
-    ctx.reply(`I've set the prefix to ${inlineCode(prefix)}.`);
+    ctx.reply(ctx.lang.commands.prefix.set.replaceAll("%%prefix%%", inlineCode(prefix)));
   },
 });

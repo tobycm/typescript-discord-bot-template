@@ -70,7 +70,7 @@ export default function messageCreateEvent(bot: Bot) {
         }
       }
 
-      const ctx = MessageContext(message);
+      const ctx = await MessageContext(message);
       messageToInteractionOptions(ctx, args, command.data.options as ApplicationCommandOptionBase[]);
 
       try {

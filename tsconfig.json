@@ -6,6 +6,8 @@
     // Ignore module structure
     "module": "Preserve",
 
+    "target": "ES2023",
+
     // Allow JSON modules to be imported
     "resolveJsonModule": true,
 

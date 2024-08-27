@@ -2,6 +2,7 @@ import { AceBase } from "acebase";
 import { AceBaseClient, AceBaseClientConnectionSettings } from "acebase-client";
 import { Client, type ClientOptions } from "discord.js";
 import Command from "modules/command";
+import langs from "./lang/index";
 
 interface AceBaseLocalOptions {
   type: "local";
@@ -27,6 +28,8 @@ export default class Bot<Ready extends boolean = boolean> extends Client<Ready> 
   }
 
   commands = new Map<string, Command>();
+
+  lang = langs;
 
   cache = new Map<string, any>();
 

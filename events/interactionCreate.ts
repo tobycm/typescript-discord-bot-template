@@ -19,7 +19,7 @@ export default (bot: Bot) => {
     if (!command) return;
 
     try {
-      const ctx = ChatInputInteractionContext(interaction);
+      const ctx = await ChatInputInteractionContext(interaction);
 
       for (const option of interaction.options.data) {
         if (option.value === undefined) continue;
