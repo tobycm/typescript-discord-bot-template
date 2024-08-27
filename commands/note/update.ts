@@ -241,10 +241,13 @@ export default new Command({
         time: 30000,
       });
 
-      (selectNote.customId.startsWith("updateNoteServer") ? handleUpdateServerNote : handleUpdateUserNote)(ButtonInteractionContext(selectNote), {
-        name,
-        content: selectNote.customId.startsWith("updateNoteServer") ? serverNote : userNote,
-      });
+      (selectNote.customId.startsWith("updateNoteServer") ? handleUpdateServerNote : handleUpdateUserNote)(
+        await ButtonInteractionContext(selectNote),
+        {
+          name,
+          content: selectNote.customId.startsWith("updateNoteServer") ? serverNote : userNote,
+        }
+      );
 
       return;
     }

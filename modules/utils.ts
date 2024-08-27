@@ -56,7 +56,7 @@ export async function getUserLang(ctx: Omit<BaseContext, "lang">): Promise<Bot["
 
   if (lang) return ctx.bot.lang[lang];
 
-  const user = await ctx.bot.db.ref("users").child(ctx.author.id).get<keyof Bot["lang"]>();
+  const user = await ctx.bot.db.ref("users").child(ctx.author.id).child("lang").get<keyof Bot["lang"]>();
 
   if (!user.exists()) return ctx.bot.lang["en-us"];
 
