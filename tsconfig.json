@@ -30,8 +30,18 @@
       "modules/*": ["./modules/*"]
     },
 
+    // Best practices
     "strict": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
+    "strictNullChecks": true,
+    "alwaysStrict": true,
+    "skipLibCheck": true,
+    "noFallthroughCasesInSwitch": true,
 
-    "strictNullChecks": true
+    // Some stricter flags (disabled by default)
+    "noUnusedLocals": false,
+    "noUnusedParameters": true,
+    "noPropertyAccessFromIndexSignature": false
   }
 }

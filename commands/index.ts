@@ -1,6 +1,7 @@
 import Bot from "Bot";
 import Command from "modules/command";
 import cunny from "./cunny";
+import fileinfo from "./fileinfo";
 import help from "./help";
 import note from "./note";
 import ping from "./ping";
@@ -16,6 +17,7 @@ const commands: Command[] = [
   prefix,
   random,
   cunny,
+  fileinfo,
   help,
 ];
 

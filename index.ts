@@ -19,6 +19,9 @@ const bot = new Bot({
     type: "local",
     databaseName: "bot",
   },
+  cache: {
+    lifespan: 5000,
+  },
 });
 
 setupCommands(bot);

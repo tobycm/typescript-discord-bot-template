@@ -1,5 +1,6 @@
 import {
   ApplicationCommandOptionBase,
+  SlashCommandAttachmentOption,
   SlashCommandBooleanOption,
   SlashCommandIntegerOption,
   SlashCommandStringOption,
@@ -13,17 +14,19 @@ import validateInteger from "./validators/integer";
 import validateString from "./validators/string";
 
 export function messageToInteractionOptions(ctx: MessageContext, args: string[], options: ApplicationCommandOptionBase[]) {
+  const attachments = ctx.original.attachments.map((a) => a);
+
   for (const option of options) {
-    const arg = args.shift();
+    let arg = args.shift();
 
     if (!arg) {
-      if (option.required) {
-        ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
-        return;
-      }
+      if (option.required && !(option instanceof SlashCommandAttachmentOption))
+        return ctx.reply(`Missing required argument: ${inlineCode(option.name)}`);
 
-      continue;
+      if (!(option instanceof SlashCommandAttachmentOption)) continue;
     }
+
+    arg = arg!;
 
     if (option instanceof SlashCommandStringOption) {
       const result = validateString(arg, option);
@@ -61,6 +64,13 @@ export function messageToInteractionOptions(ctx: MessageContext, args: string[],
       if (!user) return ctx.reply("User not found in this server");
 
       ctx.options.set(option.name, user);
+    }
+
+    if (option instanceof SlashCommandAttachmentOption) {
+      const attachment = attachments.shift();
+      if (!attachment) return ctx.reply("Attachment not found");
+
+      ctx.options.set(option.name, attachment);
     }
   }
 }

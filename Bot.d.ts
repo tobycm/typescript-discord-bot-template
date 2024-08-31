@@ -1,5 +1,6 @@
 import { AceBase } from "acebase";
 import { AceBaseClient } from "acebase-client";
+import Cache from "modules/cache";
 import Command from "modules/command";
 import langs from "./lang/index";
 
@@ -9,7 +10,7 @@ declare module "discord.js" {
 
     lang: typeof langs;
 
-    cache: Map<string, any>;
+    cache: Cache<string, any>;
 
     db: AceBase | AceBaseClient;
   }

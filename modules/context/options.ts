@@ -1,6 +1,6 @@
-import { GuildMember } from "discord.js";
+import { Attachment, GuildMember } from "discord.js";
 
-type SupportedTypes = string | number | boolean | GuildMember;
+type SupportedTypes = string | number | boolean | GuildMember | Attachment;
 
 export default class CommandOptions {
   private options = new Map<string, SupportedTypes>();

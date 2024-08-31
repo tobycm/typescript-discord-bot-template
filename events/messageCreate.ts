@@ -71,7 +71,7 @@ export default function messageCreateEvent(bot: Bot) {
       }
 
       const ctx = await MessageContext(message);
-      messageToInteractionOptions(ctx, args, command.data.options as ApplicationCommandOptionBase[]);
+      if (messageToInteractionOptions(ctx, args, command.data.options as ApplicationCommandOptionBase[])) return;
 
       try {
         await command.run(ctx);

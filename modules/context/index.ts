@@ -5,23 +5,17 @@ import {
   Guild,
   GuildMember,
   GuildTextBasedChannel,
+  InteractionReplyOptions,
   InteractionResponse,
   Message,
   MessageCreateOptions,
-  MessageMentionOptions,
+  MessagePayload,
   MessageReplyOptions,
   TextBasedChannel,
   User,
 } from "discord.js";
 import { getUserLang } from "modules/utils";
 import CommandOptions from "./options";
-
-interface ReplyOptions {
-  content: string;
-  allowedMentions?: MessageMentionOptions;
-  ephemeral?: boolean;
-  components?: MessageReplyOptions["components"];
-}
 
 export interface BaseContext<GuildOnly extends boolean = false> {
   bot: Bot<true>;
@@ -35,20 +29,15 @@ export interface BaseContext<GuildOnly extends boolean = false> {
 
   options: CommandOptions;
 
-  send(message: string): Promise<BaseContext>;
-
-  reply(message: string): Promise<BaseContext>;
-  reply(options: MessageReplyOptions): Promise<BaseContext>;
+  send(options: string | MessagePayload | MessageCreateOptions): Promise<BaseContext>;
+  reply(options: string | MessageReplyOptions | InteractionReplyOptions): Promise<BaseContext>;
 }
 
 export interface MessageContext<GuildOnly extends boolean = false> extends BaseContext<GuildOnly> {
   original: Message;
 
-  send(message: string): Promise<MessageContext>;
-  send(options: MessageCreateOptions): Promise<MessageContext>;
-
-  reply(message: string): Promise<MessageContext>;
-  reply(options: ReplyOptions): Promise<MessageContext>;
+  send(options: string | MessagePayload | MessageCreateOptions): Promise<MessageContext>;
+  reply(options: string | MessageReplyOptions): Promise<MessageContext>;
 }
 
 export const MessageContext = async (message: Message): Promise<MessageContext> => {
@@ -60,8 +49,8 @@ export const MessageContext = async (message: Message): Promise<MessageContext> 
     member: message.member,
     original: message,
     options: new CommandOptions(),
-    send: async (content) => MessageContext(await message.channel.send(content)),
-    reply: async (content) => MessageContext(await message.reply(content)),
+    send: async (options) => await MessageContext(await message.channel.send(options)),
+    reply: async (options) => await MessageContext(await message.reply(options)),
   };
 
   return {
@@ -102,11 +91,8 @@ export const MessageContext = async (message: Message): Promise<MessageContext> 
 export interface ChatInputInteractionContext<GuildOnly extends boolean = false> extends BaseContext<GuildOnly> {
   original: ChatInputCommandInteraction;
 
-  send(message: string): Promise<InteractionResponseContext>;
-  send(options: MessageCreateOptions): Promise<InteractionResponseContext>;
-
-  reply(message: string): Promise<InteractionResponseContext>;
-  reply(options: ReplyOptions): Promise<InteractionResponseContext>;
+  send(options: string | MessagePayload | MessageCreateOptions): Promise<MessageContext>;
+  reply(options: string | InteractionReplyOptions): Promise<InteractionResponseContext>;
 }
 
 export const ChatInputInteractionContext = async (interaction: ChatInputCommandInteraction): Promise<ChatInputInteractionContext> => {
@@ -118,9 +104,8 @@ export const ChatInputInteractionContext = async (interaction: ChatInputCommandI
     member: interaction.member as GuildMember | null,
     original: interaction,
     options: new CommandOptions(),
-    // @ts-ignore
-    send: async (content) => InteractionResponseContext(await interaction.reply(content)),
-    reply: async (content) => InteractionResponseContext(await interaction.reply(content)),
+    send: async (options) => await MessageContext(await interaction.channel!.send(options)),
+    reply: async (options) => await InteractionResponseContext(await interaction.reply(options)),
   };
 
   return {
@@ -165,11 +150,8 @@ export const ChatInputInteractionContext = async (interaction: ChatInputCommandI
 export interface InteractionResponseContext extends BaseContext {
   original: InteractionResponse<true>;
 
-  send(message: string): Promise<MessageContext>;
-  send(options: MessageCreateOptions): Promise<MessageContext>;
-
-  reply(message: string): Promise<MessageContext>;
-  reply(options: ReplyOptions): Promise<MessageContext>;
+  send(options: string | MessagePayload | MessageCreateOptions): Promise<MessageContext>;
+  reply(options: string | MessageReplyOptions): Promise<MessageContext>;
 }
 
 export const InteractionResponseContext = async (response: InteractionResponse<true>): Promise<InteractionResponseContext> => {
@@ -181,8 +163,8 @@ export const InteractionResponseContext = async (response: InteractionResponse<t
     member: response.interaction.member,
     original: response,
     options: new CommandOptions(),
-    send: async (content) => MessageContext(await response.interaction.channel!.send(content)),
-    reply: async (content) => MessageContext(await (await response.fetch()).reply(content)),
+    send: async (options) => await MessageContext(await response.interaction.channel!.send(options)),
+    reply: async (options) => await MessageContext(await (await response.fetch()).reply(options)),
   };
 
   return {
@@ -222,11 +204,8 @@ export const InteractionResponseContext = async (response: InteractionResponse<t
 export interface ButtonInteractionContext extends BaseContext {
   original: ButtonInteraction;
 
-  send(message: string): Promise<MessageContext>;
-  send(options: MessageCreateOptions): Promise<MessageContext>;
-
-  reply(message: string): Promise<InteractionResponseContext>;
-  reply(options: ReplyOptions): Promise<InteractionResponseContext>;
+  send(options: string | MessagePayload | MessageCreateOptions): Promise<MessageContext>;
+  reply(options: string | InteractionReplyOptions): Promise<InteractionResponseContext>;
 }
 
 export const ButtonInteractionContext = async (interaction: ButtonInteraction): Promise<ButtonInteractionContext> => {
@@ -238,8 +217,8 @@ export const ButtonInteractionContext = async (interaction: ButtonInteraction): 
     member: interaction.member as GuildMember | null,
     original: interaction,
     options: new CommandOptions(),
-    send: async (content) => MessageContext(await interaction.channel!.send(content)),
-    reply: async (content) => InteractionResponseContext(await interaction.reply(content)),
+    send: async (options) => await MessageContext(await interaction.channel!.send(options)),
+    reply: async (options) => await InteractionResponseContext(await interaction.reply(options)),
   };
   return {
     ...ctx,

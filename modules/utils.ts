@@ -62,3 +62,19 @@ export async function getUserLang(ctx: Omit<BaseContext, "lang">): Promise<Bot["
 
   return ctx.bot.lang[user.val()!];
 }
+
+export function milliseconds(ms: number = 0, seconds: number = 0, minutes: number = 0, hours: number = 0, days: number = 0) {
+  return ms + seconds * 1000 + minutes * 60000 + hours * 3600000 + days * 86400000;
+}
+
+const units = ["bytes", "KB", "MB", "GB", "TB", "PB"];
+
+export function niceBytes(x: number) {
+  let l = 0;
+
+  while (x >= 1024 && ++l) {
+    x = x / 1024;
+  }
+
+  return x.toFixed(x < 10 && l > 0 ? 1 : 0) + " " + units[l];
+}
